@@ -1,7 +1,7 @@
 from token_types import TokenType
 from tokens import Token
 
-keywords = {
+keywords: dict[str, TokenType] = {
     "and": TokenType.AND,
     "class": TokenType.CLASS,
     "else": TokenType.ELSE,
@@ -129,7 +129,7 @@ class Scanner:
                 self.line += 1
             self.advance()
 
-        if not self.at_end():
+        if self.at_end():
             import lox
 
             lox.error(self.line, "Unterminated string")
