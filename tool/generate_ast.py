@@ -30,7 +30,7 @@ def define_ast(output_dir: str, base_name: str, types: list[str]) -> None:
         writer.write(f"class {base_name}:\n")
         # The base accept() method
         writer.write(f"{indent}def accept(self, visitor):\n")
-        writer.write(f"{indent * 2}pass\n")
+        writer.write(f"{indent * 2}raise NotImplementedError\n")
         # The AST classes
         for type in types:
             data: list[str] = type.split("=>")
@@ -39,6 +39,7 @@ def define_ast(output_dir: str, base_name: str, types: list[str]) -> None:
             define_type(writer, base_name, class_name, fields)
         define_visitor(writer, base_name, types)
 
+
 def define_visitor(writer: io.TextIOBase, base_name: str, types: list[str]):
     writer.write(f"class Visitor:\n")
     for type in types:
@@ -46,7 +47,7 @@ def define_visitor(writer: io.TextIOBase, base_name: str, types: list[str]):
         writer.write(
             f"{indent}def visit_{type_name.lower()}_{base_name.lower()}(self, {base_name.lower()}: {type_name}):\n"
         )
-        writer.write(f"{indent * 2}pass\n")
+        writer.write(f"{indent * 2}raise NotImplementedError\n")
 
 
 def define_type(
@@ -61,7 +62,9 @@ def define_type(
         writer.write(f"{indent * 2}self.{name} = {name}\n")
     # Visitor pattern
     writer.write(f"{indent}def accept(self, visitor):\n")
-    writer.write(f"{indent * 2}visitor.visit_{class_name.lower()}_{base_name.lower()}(self)\n")
+    writer.write(
+        f"{indent * 2}return visitor.visit_{class_name.lower()}_{base_name.lower()}(self)\n"
+    )
 
 
 if __name__ == "__main__":
