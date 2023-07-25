@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 
 had_error: bool = False
 
@@ -38,13 +39,22 @@ def run_prompt() -> None:
 
 def run(source: str) -> None:
     from scanner import Scanner
+    from parser import Parser
+    from tokens import Token
+    from expr import Expr
+    from ast_printer import AstPrinter
 
     scanner = Scanner(source)
-    tokens = scanner.scan_tokens()
+    tokens: list[Token] = scanner.scan_tokens()
 
-    # For now, just print the tokens
-    for t in tokens:
-        print(t)
+    parser = Parser(tokens)
+    expression: Optional[Expr] = parser.parse()
+
+    # Stop if there was a syntax error
+    if expression is None or had_error:
+        return
+
+    print(AstPrinter().print(expression))
 
 
 def error(line: int, message: str) -> None:
