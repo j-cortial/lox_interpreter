@@ -1,4 +1,4 @@
-from tokens import Token
+from lox.tokens import Token
 
 
 class Expr:

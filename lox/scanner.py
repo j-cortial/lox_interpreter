@@ -1,5 +1,5 @@
-from token_types import TokenType
-from tokens import Token
+from lox.token_types import TokenType
+from lox.tokens import Token
 
 keywords: dict[str, TokenType] = {
     "and": TokenType.AND,
@@ -98,9 +98,9 @@ class Scanner:
                 elif self.is_alpha(c):
                     self.identifier()
                 else:
-                    import lox
+                    import lox.__main__ as __main__
 
-                    lox.error(self.line, f"Unexpected character: {c}")
+                    __main__.error(self.line, f"Unexpected character: {c}")
 
     def identifier(self):
         while self.is_alphanumeric(self.peek()):
@@ -130,9 +130,9 @@ class Scanner:
             self.advance()
 
         if self.at_end():
-            import lox
+            import lox.__main__ as __main__
 
-            lox.error(self.line, "Unterminated string")
+            __main__.error(self.line, "Unterminated string")
             return
 
         # The closing '"'

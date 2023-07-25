@@ -1,7 +1,7 @@
-import expr
-from expr import Expr
-from tokens import Token
-from token_types import TokenType
+import lox.expr as expr
+from lox.expr import Expr
+from lox.tokens import Token
+from lox.token_types import TokenType
 
 
 class AstPrinter(expr.Visitor):
