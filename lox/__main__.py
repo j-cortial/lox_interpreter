@@ -1,5 +1,4 @@
 import sys
-from typing import Optional
 
 from lox.runtime_error import InterpreterRuntimeError
 
@@ -49,19 +48,19 @@ def run(source: str) -> None:
     from lox.scanner import Scanner
     from lox.parser import Parser
     from lox.tokens import Token
-    from lox.expr import Expr
+    from lox.stmt import Stmt
 
     scanner = Scanner(source)
     tokens: list[Token] = scanner.scan_tokens()
 
     parser = Parser(tokens)
-    expression: Optional[Expr] = parser.parse()
+    statements: list[Stmt] = parser.parse()
 
     # Stop if there was a syntax error
-    if expression is None or had_error:
+    if had_error:
         return
 
-    interpreter.interpret(expression)
+    interpreter.interpret(statements)
 
 
 def error(line: int, message: str) -> None:

@@ -2,6 +2,8 @@ from lox.tokens import Token
 from lox.token_types import TokenType
 import lox.expr as expr
 from lox.expr import Expr
+import lox.stmt as stmt
+from lox.stmt import Stmt
 
 from typing import Optional
 
@@ -15,11 +17,26 @@ class Parser:
         self.tokens: list[Token] = tokens
         self.current: int = 0
 
-    def parse(self) -> Optional[Expr]:
-        try:
-            return self.expression()
-        except ParseError:
-            return None
+    def parse(self) -> list[Stmt]:
+        statements: list[Stmt] = []
+        while not self.is_at_end():
+            statements.append(self.statement())
+        return statements
+
+    def statement(self) -> Stmt:
+        if self.match(TokenType.PRINT):
+            return self.print_statement()
+        return self.expression_statement()
+
+    def print_statement(self) -> Stmt:
+        value: Expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value")
+        return stmt.Print(value)
+
+    def expression_statement(self) -> Stmt:
+        expr: Expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after expression")
+        return stmt.Expression(expr)
 
     def expression(self) -> Expr:
         return self.equality()
