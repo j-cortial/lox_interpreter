@@ -16,17 +16,28 @@ def main() -> None:
             "Literal  => value: object",
             "Unary    => operator: Token, right: Expr",
         ],
+        imports=[("tokens", "Token")]
+    )
+    define_ast(
+        output_dir,
+        "Stmt",
+        [
+            "Expression => expression: Expr",
+            "Print      => expression: Expr",
+        ],
+        imports=[("expr", "Expr")]
     )
 
 
 indent: str = " " * 4
 
 
-def define_ast(output_dir: str, base_name: str, types: list[str]) -> None:
+def define_ast(output_dir: str, base_name: str, types: list[str], imports: list[tuple[str, str]]) -> None:
     path: str = f"{output_dir}/{base_name.lower()}.py"
 
     with open(path, "w") as writer:
-        writer.write(f"from tokens import Token\n")
+        for (module, type) in imports:
+            writer.write(f"from lox.{module} import {type}\n")
         writer.write(f"class {base_name}:\n")
         # The base accept() method
         writer.write(f"{indent}def accept(self, visitor):\n")
