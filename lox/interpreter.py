@@ -1,13 +1,17 @@
 import lox.stmt as stmt
-from lox.stmt import Expression, Print, Stmt
+from lox.stmt import Expression, Print, Stmt, Var
 import lox.expr as expr
-from lox.expr import Binary, Unary, Expr, Grouping, Literal
+from lox.expr import Binary, Unary, Expr, Grouping, Literal, Variable
 from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
+from lox.environment import Environment
 
 
 class Interpreter(stmt.Visitor, expr.Visitor):
+    def __init__(self) -> None:
+        self.environment = Environment()
+
     def interpret(self, statements) -> None:
         try:
             for statement in statements:
@@ -23,9 +27,15 @@ class Interpreter(stmt.Visitor, expr.Visitor):
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.evaluate(stmt.expression)
 
-    def visit_print_stmt(self, stmt: Print):
+    def visit_print_stmt(self, stmt: Print) -> None:
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
+
+    def visit_var_stmt(self, stmt: Var) -> None:
+        value = None
+        if stmt.initializer is not None:
+            value = self.evaluate(stmt.initializer)
+        self.environment.define(stmt.name.lexeme, value)
 
     def visit_literal_expr(self, expr: Literal) -> object:
         return expr.value
@@ -42,9 +52,12 @@ class Interpreter(stmt.Visitor, expr.Visitor):
                 self.check_number_operand(expr.operator, right)
                 return -right
         # Unreachable
-        return None
+        return
 
-    def check_number_operand(self, operator: Token, operand: object):
+    def visit_variable_expr(self, expr: Variable) -> object:
+        return self.environment.get(expr.name)
+
+    def check_number_operand(self, operator: Token, operand: object) -> None:
         if type(operand) is float:
             return
         raise InterpreterRuntimeError(operator, "Operand must be a number")
@@ -99,7 +112,7 @@ class Interpreter(stmt.Visitor, expr.Visitor):
                 return left * right
 
         # Unreachable
-        return None
+        return
 
     def check_number_operands(self, operator: Token, left: object, right: object):
         if type(left) is float and type(right) is float:

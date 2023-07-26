@@ -15,6 +15,7 @@ def main() -> None:
             "Grouping => expression: Expr",
             "Literal  => value: object",
             "Unary    => operator: Token, right: Expr",
+            "Variable => name: Token",
         ],
         imports=[("tokens", "Token")]
     )
@@ -24,8 +25,9 @@ def main() -> None:
         [
             "Expression => expression: Expr",
             "Print      => expression: Expr",
+            "Var        => name: Token, initializer: Expr | None",
         ],
-        imports=[("expr", "Expr")]
+        imports=[("expr", "Expr"), ("tokens", "Token")]
     )
 
 
