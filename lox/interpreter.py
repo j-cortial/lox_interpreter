@@ -1,5 +1,5 @@
 import lox.stmt as stmt
-from lox.stmt import Expression, Print, Stmt, Var
+from lox.stmt import Block, Expression, Print, Stmt, Var
 import lox.expr as expr
 from lox.expr import Assign, Binary, Unary, Expr, Grouping, Literal, Variable
 from lox.tokens import Token
@@ -23,6 +23,18 @@ class Interpreter(stmt.Visitor, expr.Visitor):
 
     def execute(self, stmt) -> None:
         stmt.accept(self)
+
+    def execute_block(self, statements: list[Stmt], environment: Environment) -> None:
+        previous: Environment = self.environment
+        try:
+            self.environment: Environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
+
+    def visit_block_stmt(self, stmt: Block) -> None:
+        self.execute_block(stmt.statements, Environment(self.environment))
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.evaluate(stmt.expression)

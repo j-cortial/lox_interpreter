@@ -7,6 +7,14 @@ class Stmt:
         raise NotImplementedError
 
 
+class Block(Stmt):
+    def __init__(self, statements: list[Stmt]):
+        self.statements = statements
+
+    def accept(self, visitor):
+        return visitor.visit_block_stmt(self)
+
+
 class Expression(Stmt):
     def __init__(self, expression: Expr):
         self.expression = expression
@@ -33,6 +41,9 @@ class Var(Stmt):
 
 
 class Visitor:
+    def visit_block_stmt(self, stmt: Block):
+        raise NotImplementedError
+
     def visit_expression_stmt(self, stmt: Expression):
         raise NotImplementedError
 
