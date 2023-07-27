@@ -6,6 +6,15 @@ class Expr:
         raise NotImplementedError
 
 
+class Assign(Expr):
+    def __init__(self, name: Token, value: Expr):
+        self.name = name
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_assign_expr(self)
+
+
 class Binary(Expr):
     def __init__(self, left: Expr, operator: Token, right: Expr):
         self.left = left
@@ -50,6 +59,9 @@ class Variable(Expr):
 
 
 class Visitor:
+    def visit_assign_expr(self, expr: Assign):
+        raise NotImplementedError
+
     def visit_binary_expr(self, expr: Binary):
         raise NotImplementedError
 

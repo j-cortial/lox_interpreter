@@ -17,5 +17,11 @@ class Environment:
             return self.enclosing.get(name)
         raise InterpreterRuntimeError(name, f"Undefined variable '{name.lexeme}'")
 
+    def assign(self, name: Token, value: object):
+        if name.lexeme in self.values:
+            self.values[name.lexeme] = value
+            return
+        raise InterpreterRuntimeError(name, f"Undefined variable '{name.lexeme}'")
+
     def define(self, name: str, value: object) -> None:
         self.values[name] = value

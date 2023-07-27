@@ -1,7 +1,7 @@
 import lox.stmt as stmt
 from lox.stmt import Expression, Print, Stmt, Var
 import lox.expr as expr
-from lox.expr import Binary, Unary, Expr, Grouping, Literal, Variable
+from lox.expr import Assign, Binary, Unary, Expr, Grouping, Literal, Variable
 from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
@@ -36,6 +36,11 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         if stmt.initializer is not None:
             value = self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
+
+    def visit_assign_expr(self, expr: Assign):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
 
     def visit_literal_expr(self, expr: Literal) -> object:
         return expr.value
