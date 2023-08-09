@@ -52,9 +52,9 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         print(self.stringify(value))
 
     def visit_var_stmt(self, stmt: Var) -> None:
-        value = None
-        if stmt.initializer is not None:
-            value = self.evaluate(stmt.initializer)
+        value: Optional[object] = (
+            self.evaluate(stmt.initializer) if stmt.initializer is not None else None
+        )
         self.environment.define(stmt.name.lexeme, value)
 
     def visit_while_stmt(self, stmt: While) -> None:
