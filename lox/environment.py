@@ -22,8 +22,8 @@ class Environment:
             self.values[name.lexeme] = value
             return
         if self.enclosing is not None:
-            self.assign(name, value)
+            return self.enclosing.assign(name, value)
         raise InterpreterRuntimeError(name, f"Undefined variable '{name.lexeme}'")
 
-    def define(self, name: str, value: object) -> None:
+    def define(self, name: str, value: Optional[object]) -> None:
         self.values[name] = value

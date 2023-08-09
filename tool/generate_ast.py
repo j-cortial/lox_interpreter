@@ -15,6 +15,7 @@ def main() -> None:
             "Binary   => left: Expr, operator: Token, right: Expr",
             "Grouping => expression: Expr",
             "Literal  => value: object",
+            "Logical  => left: Expr, operator: Token, right: Expr",
             "Unary    => operator: Token, right: Expr",
             "Variable => name: Token",
         ],
@@ -26,8 +27,10 @@ def main() -> None:
         [
             "Block      => statements: list[Stmt]",
             "Expression => expression: Expr",
+            "If         => condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
             "Print      => expression: Expr",
             "Var        => name: Token, initializer: Expr | None",
+            "While      => condition: Expr, body: Stmt",
         ],
         imports=[("expr", "Expr"), ("tokens", "Token")],
     )
