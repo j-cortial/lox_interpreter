@@ -1,9 +1,12 @@
 from lox.expr import Expr
 from lox.tokens import Token
+from typing import TypeAlias
+
+VisitorFwd: TypeAlias = "Visitor"
 
 
 class Stmt:
-    def accept(self, visitor):
+    def accept(self, visitor: VisitorFwd):
         raise NotImplementedError
 
 
@@ -11,7 +14,7 @@ class Block(Stmt):
     def __init__(self, statements: list[Stmt]):
         self.statements = statements
 
-    def accept(self, visitor):
+    def accept(self, visitor: VisitorFwd):
         return visitor.visit_block_stmt(self)
 
 
@@ -19,7 +22,7 @@ class Expression(Stmt):
     def __init__(self, expression: Expr):
         self.expression = expression
 
-    def accept(self, visitor):
+    def accept(self, visitor: VisitorFwd):
         return visitor.visit_expression_stmt(self)
 
 
@@ -27,7 +30,7 @@ class Print(Stmt):
     def __init__(self, expression: Expr):
         self.expression = expression
 
-    def accept(self, visitor):
+    def accept(self, visitor: VisitorFwd):
         return visitor.visit_print_stmt(self)
 
 
@@ -36,7 +39,7 @@ class Var(Stmt):
         self.name = name
         self.initializer = initializer
 
-    def accept(self, visitor):
+    def accept(self, visitor: VisitorFwd):
         return visitor.visit_var_stmt(self)
 
 

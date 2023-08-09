@@ -18,7 +18,7 @@ def main() -> None:
             "Unary    => operator: Token, right: Expr",
             "Variable => name: Token",
         ],
-        imports=[("tokens", "Token")]
+        imports=[("tokens", "Token")],
     )
     define_ast(
         output_dir,
@@ -29,22 +29,26 @@ def main() -> None:
             "Print      => expression: Expr",
             "Var        => name: Token, initializer: Expr | None",
         ],
-        imports=[("expr", "Expr"), ("tokens", "Token")]
+        imports=[("expr", "Expr"), ("tokens", "Token")],
     )
 
 
 indent: str = " " * 4
 
 
-def define_ast(output_dir: str, base_name: str, types: list[str], imports: list[tuple[str, str]]) -> None:
+def define_ast(
+    output_dir: str, base_name: str, types: list[str], imports: list[tuple[str, str]]
+) -> None:
     path: str = f"{output_dir}/{base_name.lower()}.py"
 
     with open(path, "w") as writer:
-        for (module, type) in imports:
+        for module, type in imports:
             writer.write(f"from lox.{module} import {type}\n")
+        writer.write("from typing import TypeAlias\n")
+        writer.write('VisitorFwd: TypeAlias = "Visitor"\n')
         writer.write(f"class {base_name}:\n")
         # The base accept() method
-        writer.write(f"{indent}def accept(self, visitor):\n")
+        writer.write(f"{indent}def accept(self, visitor: VisitorFwd):\n")
         writer.write(f"{indent * 2}raise NotImplementedError\n")
         # The AST classes
         for type in types:
@@ -76,7 +80,7 @@ def define_type(
         name: str = field.split(":")[0].strip()
         writer.write(f"{indent * 2}self.{name} = {name}\n")
     # Visitor pattern
-    writer.write(f"{indent}def accept(self, visitor):\n")
+    writer.write(f"{indent}def accept(self, visitor: VisitorFwd):\n")
     writer.write(
         f"{indent * 2}return visitor.visit_{class_name.lower()}_{base_name.lower()}(self)\n"
     )
