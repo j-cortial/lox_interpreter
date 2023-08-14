@@ -70,7 +70,9 @@ class Parser:
         )
         self.consume(TokenType.SEMICOLON, "Expect ';' after loop condition")
 
-        increment: Optional[Expr] = self.expression() if not self.check(TokenType.SEMICOLON) else None
+        increment: Optional[Expr] = (
+            self.expression() if not self.check(TokenType.SEMICOLON) else None
+        )
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses")
 
         body: Stmt = self.statement()
@@ -86,7 +88,6 @@ class Parser:
             body = stmt.Block([initializer, body])
 
         return body
-
 
     def if_statement(self) -> Stmt:
         self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'")
@@ -200,7 +201,27 @@ class Parser:
             operator: Token = self.previous()
             right: Expr = self.unary()
             return expr.Unary(operator, right)
-        return self.primary()
+        return self.call()
+
+    def call(self) -> Expr:
+        expression = self.primary()
+        while True:
+            if self.match(TokenType.LEFT_PAREN):
+                expr = self.finish_call(expression)
+            else:
+                break
+        return expression
+
+    def finish_call(self, callee: Expr) -> Expr:
+        arguments: list[Expr] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match(TokenType.COMMA):
+                if len(arguments) >= 255:
+                    self.error(self.peek(), "Cannot have more than 255 arguments")
+                arguments.append(self.expression())
+        paren: Token = self.consume(TokenType.RIGHT_PAREN, "Expect '(' after arguments")
+        return expr.Call(callee, paren, arguments)
 
     def primary(self) -> Expr:
         if self.match(TokenType.FALSE):

@@ -153,6 +153,26 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         # Unreachable
         return
 
+    def visit_call_expr(self, expr: expr.Call) -> object:
+        callee: object = self.evaluate(expr.callee)
+        arguments: list[object] = []
+        for argument in expr.arguments:
+            arguments.append(self.evaluate(argument))
+
+        from lox_callable import LoxCallable
+
+        if not isinstance(callee, LoxCallable):
+            raise InterpreterRuntimeError(
+                expr.paren, "Can only call functions and classes"
+            )
+        function: LoxCallable = callee
+        if len(arguments) != function.arity():
+            raise InterpreterRuntimeError(
+                expr.paren,
+                f"Expected {function.arity()} arguments but got {len(arguments)}",
+            )
+        return function.call(self, arguments)
+
     def check_number_operands(self, operator: Token, left: object, right: object):
         if type(left) is float and type(right) is float:
             return
