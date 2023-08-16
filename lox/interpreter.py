@@ -1,10 +1,11 @@
 import lox.stmt as stmt
-from lox.stmt import Block, Expression, Print, Stmt, Var, If, While
+from lox.stmt import Block, Expression, Print, Return, Stmt, Var, If, While
 import lox.expr as expr
 from lox.expr import Assign, Binary, Unary, Expr, Grouping, Literal, Variable
 from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
+from lox.return_value import ReturnValue
 from lox.environment import Environment
 from lox.lox_callable import LoxCallable
 from lox.lox_function import LoxFunction
@@ -69,6 +70,10 @@ class Interpreter(stmt.Visitor, expr.Visitor):
     def visit_print_stmt(self, stmt: Print) -> None:
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
+
+    def visit_return_stmt(self, stmt: Return):
+        value: Optional[object] = self.evaluate(stmt.value) if stmt.value is not None else None
+        raise ReturnValue(value)
 
     def visit_var_stmt(self, stmt: Var) -> None:
         value: Optional[object] = (

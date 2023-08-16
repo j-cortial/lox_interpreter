@@ -54,6 +54,15 @@ class Print(Stmt):
         return visitor.visit_print_stmt(self)
 
 
+class Return(Stmt):
+    def __init__(self, keyword: Token, value: Expr | None):
+        self.keyword = keyword
+        self.value = value
+
+    def accept(self, visitor: VisitorFwd):
+        return visitor.visit_return_stmt(self)
+
+
 class Var(Stmt):
     def __init__(self, name: Token, initializer: Expr | None):
         self.name = name
@@ -86,6 +95,9 @@ class Visitor:
         raise NotImplementedError
 
     def visit_print_stmt(self, stmt: Print):
+        raise NotImplementedError
+
+    def visit_return_stmt(self, stmt: Return):
         raise NotImplementedError
 
     def visit_var_stmt(self, stmt: Var):

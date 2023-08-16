@@ -31,6 +31,7 @@ def main() -> None:
             "Function   => name: Token, params: list[Token], body: list[Stmt]",
             "If         => condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
             "Print      => expression: Expr",
+            "Return     => keyword: Token, value: Expr | None",
             "Var        => name: Token, initializer: Expr | None",
             "While      => condition: Expr, body: Stmt",
         ],

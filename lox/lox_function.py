@@ -1,6 +1,7 @@
 from lox.lox_callable import LoxCallable
 from lox.environment import Environment
 import lox.stmt as stmt
+from lox.return_value import ReturnValue
 
 from typing import Optional
 
@@ -21,4 +22,7 @@ class LoxFunction(LoxCallable):
         environment: Environment = Environment(interpreter.globals)
         for param, arg in zip(self.declaration.params, arguments):
             environment.define(param.lexeme, arg)
-        interpreter.execute_block(self.declaration.body, environment)
+        try:
+            interpreter.execute_block(self.declaration.body, environment)
+        except ReturnValue as e:
+            return e.value
