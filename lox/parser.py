@@ -27,6 +27,8 @@ class Parser:
 
     def declaration(self) -> Optional[Stmt]:
         try:
+            if self.match(TokenType.FUN):
+                return self.function("function")
             if self.match(TokenType.VAR):
                 return self.var_declaration()
             return self.statement()
@@ -117,6 +119,24 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expect ';' after expression")
         return stmt.Expression(expr)
 
+    def function(self, kind: str) -> stmt.Function:
+        name: Token = self.consume(TokenType.IDENTIFIER, f"Expect {kind} name")
+        self.consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name")
+        parameters: list[Token] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(parameters) >= 255:
+                    self.error(self.peek(), "Cannot have more than 255 parameters")
+                parameters.append(
+                    self.consume(TokenType.IDENTIFIER, "Expect parameter name")
+                )
+                if not self.match(TokenType.COMMA):
+                    break
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters")
+        self.consume(TokenType.LEFT_BRACE, f"Expect '\u007b' before {kind} body")
+        body: list[Stmt] = self.block()
+        return stmt.Function(name, parameters, body)
+
     def block(self) -> list[Stmt]:
         statements: list[Stmt] = []
         while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
@@ -204,10 +224,10 @@ class Parser:
         return self.call()
 
     def call(self) -> Expr:
-        expression = self.primary()
+        expression: Expr = self.primary()
         while True:
             if self.match(TokenType.LEFT_PAREN):
-                expr = self.finish_call(expression)
+                expression = self.finish_call(expression)
             else:
                 break
         return expression
@@ -220,7 +240,7 @@ class Parser:
                 if len(arguments) >= 255:
                     self.error(self.peek(), "Cannot have more than 255 arguments")
                 arguments.append(self.expression())
-        paren: Token = self.consume(TokenType.RIGHT_PAREN, "Expect '(' after arguments")
+        paren: Token = self.consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments")
         return expr.Call(callee, paren, arguments)
 
     def primary(self) -> Expr:

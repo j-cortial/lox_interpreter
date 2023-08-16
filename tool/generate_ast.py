@@ -28,6 +28,7 @@ def main() -> None:
         [
             "Block      => statements: list[Stmt]",
             "Expression => expression: Expr",
+            "Function   => name: Token, params: list[Token], body: list[Stmt]",
             "If         => condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
             "Print      => expression: Expr",
             "Var        => name: Token, initializer: Expr | None",

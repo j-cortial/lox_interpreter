@@ -7,6 +7,7 @@ from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
 from lox.environment import Environment
 from lox.lox_callable import LoxCallable
+from lox.lox_function import LoxFunction
 
 from typing import Optional
 import time
@@ -54,6 +55,10 @@ class Interpreter(stmt.Visitor, expr.Visitor):
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.evaluate(stmt.expression)
+
+    def visit_function_stmt(self, stmt: stmt.Function) -> None:
+        function: LoxFunction = LoxFunction(stmt)
+        self.environment.define(stmt.name.lexeme, function)
 
     def visit_if_stmt(self, stmt: If) -> None:
         if self.is_truthy(self.evaluate(stmt.condition)):
@@ -173,7 +178,7 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         for argument in expr.arguments:
             arguments.append(self.evaluate(argument))
 
-        from lox_callable import LoxCallable
+        from lox.lox_callable import LoxCallable
 
         if not isinstance(callee, LoxCallable):
             raise InterpreterRuntimeError(
