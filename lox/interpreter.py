@@ -6,15 +6,29 @@ from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
 from lox.environment import Environment
+from lox.lox_callable import LoxCallable
 
 from typing import Optional
-
+import time
 
 class Interpreter(stmt.Visitor, expr.Visitor):
     def __init__(self) -> None:
-        self.environment = Environment()
+        self.globals: Environment = Environment()
+        self.environment: Environment = self.globals
 
-    def interpret(self, statements) -> None:
+        class NativeClock(LoxCallable):
+            def arity(self) -> int:
+                return 0
+
+            def call(self, interpreter: Interpreter, arguments: list[object]) -> float:
+                return time.time()
+
+            def __str__(self) -> str:
+                return "<native fn>"
+
+        self.globals.define("clock", NativeClock())
+
+    def interpret(self, statements: list[Stmt]) -> None:
         try:
             for statement in statements:
                 self.execute(statement)
@@ -23,7 +37,7 @@ class Interpreter(stmt.Visitor, expr.Visitor):
 
             __main__.runtime_error(error)
 
-    def execute(self, stmt) -> None:
+    def execute(self, stmt: Stmt) -> None:
         stmt.accept(self)
 
     def execute_block(self, statements: list[Stmt], environment: Environment) -> None:
