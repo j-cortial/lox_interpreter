@@ -7,7 +7,8 @@ from typing import Optional
 
 
 class LoxFunction(LoxCallable):
-    def __init__(self, declaration: stmt.Function) -> None:
+    def __init__(self, declaration: stmt.Function, closure: Environment) -> None:
+        self.closure: Environment = closure
         self.declaration: stmt.Function = declaration
 
     def __str__(self) -> str:
@@ -19,7 +20,7 @@ class LoxFunction(LoxCallable):
     def call(
         self, interpreter, arguments: list[object]
     ) -> Optional[object]:
-        environment: Environment = Environment(interpreter.globals)
+        environment: Environment = Environment(self.closure)
         for param, arg in zip(self.declaration.params, arguments):
             environment.define(param.lexeme, arg)
         try:
