@@ -13,10 +13,12 @@ from lox.lox_function import LoxFunction
 from typing import Optional
 import time
 
+
 class Interpreter(stmt.Visitor, expr.Visitor):
     def __init__(self) -> None:
         self.globals: Environment = Environment()
         self.environment: Environment = self.globals
+        self.locals: dict[Expr, int] = dict()
 
         class NativeClock(LoxCallable):
             def arity(self) -> int:
@@ -41,6 +43,9 @@ class Interpreter(stmt.Visitor, expr.Visitor):
 
     def execute(self, stmt: Stmt) -> None:
         stmt.accept(self)
+
+    def resolve(self, expr: Expr, depth: int) -> None:
+        self.locals[expr] = depth
 
     def execute_block(self, statements: list[Stmt], environment: Environment) -> None:
         previous: Environment = self.environment
@@ -72,7 +77,9 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         print(self.stringify(value))
 
     def visit_return_stmt(self, stmt: Return):
-        value: Optional[object] = self.evaluate(stmt.value) if stmt.value is not None else None
+        value: Optional[object] = (
+            self.evaluate(stmt.value) if stmt.value is not None else None
+        )
         raise ReturnValue(value)
 
     def visit_var_stmt(self, stmt: Var) -> None:
@@ -87,7 +94,11 @@ class Interpreter(stmt.Visitor, expr.Visitor):
 
     def visit_assign_expr(self, expr: Assign):
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+        distance = self.locals.get(expr)
+        if distance is not None:
+            self.environment.assign_at(distance, expr.name, value)
+        else:
+            self.globals.assign(expr.name, value)
         return value
 
     def visit_literal_expr(self, expr: Literal) -> object:
@@ -118,7 +129,14 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         return
 
     def visit_variable_expr(self, expr: Variable) -> object:
-        return self.environment.get(expr.name)
+        return self.lookup_variable(expr.name, expr)
+
+    def lookup_variable(self, name: Token, expr: Expr) -> object:
+        distance: Optional[int] = self.locals.get(expr)
+        if distance is not None:
+            return self.environment.get_at(distance, name.lexeme)
+        else:
+            return self.globals.get(name)
 
     def check_number_operand(self, operator: Token, operand: object) -> None:
         if type(operand) is float:

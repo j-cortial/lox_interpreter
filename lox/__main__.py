@@ -3,6 +3,7 @@ import sys
 from lox.runtime_error import InterpreterRuntimeError
 
 from lox.interpreter import Interpreter
+from lox.resolver import Resolver
 
 had_error: bool = False
 had_runtime_error: bool = False
@@ -57,6 +58,13 @@ def run(source: str) -> None:
     statements: list[Stmt] = parser.parse()
 
     # Stop if there was a syntax error
+    if had_error:
+        return
+
+    resolver = Resolver(interpreter)
+    resolver.resolve(statements)
+
+    # Stop if there was a resolution error
     if had_error:
         return
 
