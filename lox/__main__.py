@@ -3,7 +3,6 @@ import sys
 from lox.runtime_error import InterpreterRuntimeError
 
 from lox.interpreter import Interpreter
-from lox.resolver import Resolver
 
 had_error: bool = False
 had_runtime_error: bool = False
@@ -50,6 +49,7 @@ def run(source: str) -> None:
     from lox.parser import Parser
     from lox.tokens import Token
     from lox.stmt import Stmt
+    from lox.resolver import Resolver
 
     scanner = Scanner(source)
     tokens: list[Token] = scanner.scan_tokens()

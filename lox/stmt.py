@@ -36,6 +36,15 @@ class Function(Stmt):
         return visitor.visit_function_stmt(self)
 
 
+class Class(Stmt):
+    def __init__(self, name: Token, methods: list[Function]):
+        self.name = name
+        self.methods = methods
+
+    def accept(self, visitor: VisitorFwd):
+        return visitor.visit_class_stmt(self)
+
+
 class If(Stmt):
     def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Stmt | None):
         self.condition = condition
@@ -89,6 +98,9 @@ class Visitor:
         raise NotImplementedError
 
     def visit_function_stmt(self, stmt: Function):
+        raise NotImplementedError
+
+    def visit_class_stmt(self, stmt: Class):
         raise NotImplementedError
 
     def visit_if_stmt(self, stmt: If):
