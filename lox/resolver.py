@@ -68,22 +68,22 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self.resolve_expr(stmt.condition)
         self.resolve_stmt(stmt.body)
 
-    def visit_binary_expression(self, expr: Binary) -> None:
+    def visit_binary_expr(self, expr: Binary) -> None:
         self.resolve_expr(expr.left)
         self.resolve_expr(expr.right)
 
-    def visit_call_expression(self, expr: Call) -> None:
+    def visit_call_expr(self, expr: Call) -> None:
         self.resolve_expr(expr.callee)
         for argument in expr.arguments:
             self.resolve_expr(argument)
 
-    def visit_grouping_expression(self, expr: Grouping) -> None:
+    def visit_grouping_expr(self, expr: Grouping) -> None:
         self.resolve_expr(expr.expression)
 
-    def visit_literal_expression(self, expr: Literal) -> None:
+    def visit_literal_expr(self, expr: Literal) -> None:
         pass
 
-    def visit_logical_expression(self, expr: Logical) -> None:
+    def visit_logical_expr(self, expr: Logical) -> None:
         self.resolve_expr(expr.left)
         self.resolve_expr(expr.right)
 
