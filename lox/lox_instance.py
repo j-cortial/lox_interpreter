@@ -1,12 +1,14 @@
+from typing import Optional
 from lox.lox_class import LoxClass
+from lox.lox_function import LoxFunction
 from lox.runtime_error import InterpreterRuntimeError
 from lox.tokens import Token
 
 
 class LoxInstance:
     def __init__(self, klass: LoxClass) -> None:
-        self.klass = klass
-        self.fields: dict[str, object] = dict()
+        self.klass: LoxClass = klass
+        self.fields: dict[str, object] = {}
 
     def __str__(self) -> str:
         return f"{self.klass.name} instance"
@@ -14,6 +16,9 @@ class LoxInstance:
     def get(self, name: Token) -> object:
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]
+        method: Optional[LoxFunction] = self.klass.find_method(name.lexeme)
+        if method is not None:
+            return method
         raise InterpreterRuntimeError(name, f"Undefined property {name.lexeme}")
 
     def set(self, name: Token, value: object) -> None:

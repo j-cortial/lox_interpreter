@@ -1,13 +1,19 @@
 from typing import Optional
 from lox.lox_callable import InterpreterFwd, LoxCallable
+from lox.lox_function import LoxFunction
 
 
 class LoxClass(LoxCallable):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, methods: dict[str, LoxFunction]) -> None:
         self.name: str = name
+        self.methods: dict[str, LoxFunction] = methods
 
     def __str__(self) -> str:
         return self.name
+
+    def find_method(self, name: str) -> Optional[LoxFunction]:
+        if name in self.methods:
+            return self.methods[name]
 
     def call(
         self, interpreter: InterpreterFwd, arguments: list[object]

@@ -16,10 +16,21 @@ from lox.expr import (
     Unary,
     Variable,
 )
-from lox.stmt import Class, Expression, Function, If, Print, Return, Stmt, Block, Var, While
+from lox.stmt import (
+    Class,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    Block,
+    Var,
+    While,
+)
 from lox.tokens import Token
 
-FunctionType = Enum("FunctionType", ["NONE", "FUNCTION"])
+FunctionType = Enum("FunctionType", ["NONE", "METHOD", "FUNCTION"])
 
 
 class Resolver(expr.Visitor, stmt.Visitor):
@@ -36,6 +47,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def visit_class_stmt(self, stmt: Class) -> None:
         self.declare(stmt.name)
         self.define(stmt.name)
+        for method in stmt.methods:
+            declaration = FunctionType.METHOD
+            self.resolve_function(method, declaration)
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.resolve_expr(stmt.expression)
