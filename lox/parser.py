@@ -122,7 +122,9 @@ class Parser:
 
     def return_statement(self) -> Stmt:
         keyword: Token = self.previous()
-        value: Optional[Expr] = self.expression() if not self.check(TokenType.SEMICOLON) else None
+        value: Optional[Expr] = (
+            self.expression() if not self.check(TokenType.SEMICOLON) else None
+        )
         self.consume(TokenType.SEMICOLON, "Expect ';' after return value")
         return stmt.Return(keyword, value)
 
@@ -173,9 +175,10 @@ class Parser:
         if self.match(TokenType.EQUAL):
             equals: Token = self.previous()
             value: Expr = self.assignment()
-            if type(expression) is expr.Variable:
-                name: Token = expression.name
-                return expr.Assign(name, value)
+            if isinstance(expression, expr.Variable):
+                return expr.Assign(expression.name, value)
+            elif isinstance(expression, expr.Get):
+                return expr.Set(expression.instance, expression.name, value)
             self.error(equals, "Invalid assignment target.")
         return expression
 
@@ -247,6 +250,11 @@ class Parser:
         while True:
             if self.match(TokenType.LEFT_PAREN):
                 expression = self.finish_call(expression)
+            elif self.match(TokenType.DOT):
+                name: Token = self.consume(
+                    TokenType.IDENTIFIER, "Expect property name after '.'"
+                )
+                expression = expr.Get(expression, name)
             else:
                 break
         return expression
@@ -302,7 +310,16 @@ class Parser:
                 return
 
             match self.peek().type:
-                case TokenType.CLASS | TokenType.FUN | TokenType.VAR | TokenType.FOR | TokenType.IF | TokenType.WHILE | TokenType.PRINT | TokenType.RETURN:
+                case (
+                    TokenType.CLASS
+                    | TokenType.FUN
+                    | TokenType.VAR
+                    | TokenType.FOR
+                    | TokenType.IF
+                    | TokenType.WHILE
+                    | TokenType.PRINT
+                    | TokenType.RETURN
+                ):
                     return
 
             self.advance()

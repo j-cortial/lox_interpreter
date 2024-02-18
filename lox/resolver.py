@@ -8,9 +8,11 @@ from lox.expr import (
     Binary,
     Call,
     Expr,
+    Get,
     Grouping,
     Literal,
     Logical,
+    Set,
     Unary,
     Variable,
 )
@@ -77,6 +79,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
         for argument in expr.arguments:
             self.resolve_expr(argument)
 
+    def visit_get_expr(self, expr: Get) -> None:
+        self.resolve_expr(expr.instance)
+
     def visit_grouping_expr(self, expr: Grouping) -> None:
         self.resolve_expr(expr.expression)
 
@@ -87,7 +92,11 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self.resolve_expr(expr.left)
         self.resolve_expr(expr.right)
 
-    def visit_unary_expr(self, expr: Unary):
+    def visit_set_expr(self, expr: Set) -> None:
+        self.resolve_expr(expr.value)
+        self.resolve_expr(expr.instance)
+
+    def visit_unary_expr(self, expr: Unary) -> None:
         self.resolve_expr(expr.right)
 
     def visit_variable_expr(self, expr: Variable) -> None:

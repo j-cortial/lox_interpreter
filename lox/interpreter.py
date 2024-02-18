@@ -1,7 +1,7 @@
 import lox.stmt as stmt
 from lox.stmt import Block, Class, Expression, Print, Return, Stmt, Var, If, While
 import lox.expr as expr
-from lox.expr import Assign, Binary, Unary, Expr, Grouping, Literal, Variable
+from lox.expr import Assign, Binary, Set, Unary, Expr, Grouping, Literal, Variable
 from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
@@ -10,8 +10,9 @@ from lox.environment import Environment
 from lox.lox_callable import LoxCallable
 from lox.lox_function import LoxFunction
 from lox.lox_class import LoxClass
+from lox.lox_instance import LoxInstance
 
-from typing import Optional
+from typing import NoReturn, Optional
 import time
 
 
@@ -82,7 +83,7 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
 
-    def visit_return_stmt(self, stmt: Return):
+    def visit_return_stmt(self, stmt: Return) -> NoReturn:
         value: Optional[object] = (
             self.evaluate(stmt.value) if stmt.value is not None else None
         )
@@ -119,6 +120,14 @@ class Interpreter(stmt.Visitor, expr.Visitor):
             if not self.is_truthy(left):
                 return left
         return self.evaluate(expr.right)
+
+    def visit_set_expr(self, expr: Set):
+        instance: object = self.evaluate(expr.instance)
+        if not isinstance(instance, LoxInstance):
+            raise InterpreterRuntimeError(expr.name, "Only instances have fields")
+        value: object = self.evaluate(expr.value)
+        instance.set(expr.name, value)
+        return value
 
     def visit_grouping_expr(self, expr: Grouping):
         return self.evaluate(expr.expression)
@@ -221,7 +230,13 @@ class Interpreter(stmt.Visitor, expr.Visitor):
             )
         return function.call(self, arguments)
 
-    def check_number_operands(self, operator: Token, left: object, right: object):
+    def visit_get_expr(self, expr: expr.Get) -> object:
+        instance: object = self.evaluate(expr.instance)
+        if isinstance(instance, LoxInstance):
+            return instance.get(expr.name)
+        raise InterpreterRuntimeError(expr.name, "Only instances have properties")
+
+    def check_number_operands(self, operator: Token, left: object, right: object) -> None:
         if type(left) is float and type(right) is float:
             return
         raise InterpreterRuntimeError(operator, "Operands must be numbers")
