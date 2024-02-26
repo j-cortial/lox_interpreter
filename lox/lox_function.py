@@ -17,9 +17,12 @@ class LoxFunction(LoxCallable):
     def arity(self) -> int:
         return len(self.declaration.params)
 
-    def call(
-        self, interpreter, arguments: list[object]
-    ) -> Optional[object]:
+    def bind(self, instance) -> "LoxFunction":
+        environment = Environment(self.closure)
+        environment.define("this", instance)
+        return LoxFunction(self.declaration, environment)
+
+    def call(self, interpreter, arguments: list[object]) -> Optional[object]:
         environment: Environment = Environment(self.closure)
         for param, arg in zip(self.declaration.params, arguments):
             environment.define(param.lexeme, arg)

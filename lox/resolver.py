@@ -13,6 +13,7 @@ from lox.expr import (
     Literal,
     Logical,
     Set,
+    This,
     Unary,
     Variable,
 )
@@ -31,13 +32,15 @@ from lox.stmt import (
 from lox.tokens import Token
 
 FunctionType = Enum("FunctionType", ["NONE", "METHOD", "FUNCTION"])
+ClassType = Enum("ClassType", ["NONE", "CLASS"])
 
 
 class Resolver(expr.Visitor, stmt.Visitor):
     def __init__(self, interpreter: Interpreter) -> None:
-        self.interpreter: Interpreter = interpreter
+        self.interpreter = interpreter
         self.scopes: list[dict[str, bool]] = []
         self.current_function: FunctionType = FunctionType.NONE
+        self.current_class: ClassType = ClassType.NONE
 
     def visit_block_stmt(self, stmt: Block) -> None:
         self.begin_scope()
@@ -45,11 +48,17 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self.end_scope()
 
     def visit_class_stmt(self, stmt: Class) -> None:
+        enclosing_class = self.current_class
+        self.current_class = ClassType.CLASS
         self.declare(stmt.name)
         self.define(stmt.name)
+        self.begin_scope()
+        self.scopes[-1]["this"] = True
         for method in stmt.methods:
             declaration = FunctionType.METHOD
             self.resolve_function(method, declaration)
+        self.end_scope()
+        self.current_class = enclosing_class
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.resolve_expr(stmt.expression)
@@ -109,6 +118,13 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def visit_set_expr(self, expr: Set) -> None:
         self.resolve_expr(expr.value)
         self.resolve_expr(expr.instance)
+
+    def visit_this_expr(self, expr: This) -> None:
+        if self.current_class == ClassType.NONE:
+            lox.__main__.error(
+                expr.keyword.line, "Cannot use 'this' outside of a class"
+            )
+        self.resolve_local(expr, expr.keyword)
 
     def visit_unary_expr(self, expr: Unary) -> None:
         self.resolve_expr(expr.right)

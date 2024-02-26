@@ -277,18 +277,16 @@ class Parser:
             return expr.Literal(True)
         if self.match(TokenType.NIL):
             return expr.Literal(None)
-
         if self.match(TokenType.NUMBER, TokenType.STRING):
             return expr.Literal(self.previous().literal)
-
+        if self.match(TokenType.THIS):
+            return expr.This(self.previous())
         if self.match(TokenType.IDENTIFIER):
             return expr.Variable(self.previous())
-
         if self.match(TokenType.LEFT_PAREN):
             expression: Expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression")
             return expr.Grouping(expression)
-
         raise self.error(self.peek(), "Expect expression")
 
     def consume(self, type: TokenType, message: str) -> Token:

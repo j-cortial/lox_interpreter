@@ -83,6 +83,14 @@ class Set(Expr):
         return visitor.visit_set_expr(self)
 
 
+class This(Expr):
+    def __init__(self, keyword: Token):
+        self.keyword = keyword
+
+    def accept(self, visitor: VisitorFwd):
+        return visitor.visit_this_expr(self)
+
+
 class Unary(Expr):
     def __init__(self, operator: Token, right: Expr):
         self.operator = operator
@@ -123,6 +131,9 @@ class Visitor:
         raise NotImplementedError
 
     def visit_set_expr(self, expr: Set):
+        raise NotImplementedError
+
+    def visit_this_expr(self, expr: This):
         raise NotImplementedError
 
     def visit_unary_expr(self, expr: Unary):

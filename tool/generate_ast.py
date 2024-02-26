@@ -19,6 +19,7 @@ def main() -> None:
             "Literal  => value: object",
             "Logical  => left: Expr, operator: Token, right: Expr",
             "Set      => instance: Expr, name: Token, value: Expr",
+            "This     => keyword: Token",
             "Unary    => operator: Token, right: Expr",
             "Variable => name: Token",
         ],

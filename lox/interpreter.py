@@ -1,7 +1,7 @@
 import lox.stmt as stmt
 from lox.stmt import Block, Class, Expression, Print, Return, Stmt, Var, If, While
 import lox.expr as expr
-from lox.expr import Assign, Binary, Set, Unary, Expr, Grouping, Literal, Variable
+from lox.expr import Assign, Binary, Set, This, Unary, Expr, Grouping, Literal, Variable
 from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
@@ -132,6 +132,9 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         value: object = self.evaluate(expr.value)
         instance.set(expr.name, value)
         return value
+
+    def visit_this_expr(self, expr: This) -> object:
+        return self.lookup_variable(expr.keyword, expr)
 
     def visit_grouping_expr(self, expr: Grouping):
         return self.evaluate(expr.expression)
