@@ -1,5 +1,5 @@
 from typing import Optional
-from lox.lox_callable import InterpreterFwd, LoxCallable
+from lox.lox_callable import LoxCallable
 from lox.lox_function import LoxFunction
 
 
@@ -16,7 +16,7 @@ class LoxClass(LoxCallable):
             return self.methods[name]
 
     def call(
-        self, interpreter: InterpreterFwd, arguments: list[object]
+        self, interpreter, arguments: list[object]
     ) -> Optional[object]:
         from lox.lox_instance import LoxInstance
 

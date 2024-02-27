@@ -1,10 +1,8 @@
-from typing import Optional, TypeAlias
-
-InterpreterFwd: TypeAlias = "lox.interpreter.Interpreter"
+from typing import Optional
 
 class LoxCallable:
     def arity(self) -> int:
         raise NotImplementedError
 
-    def call(self, interpreter: InterpreterFwd, arguments: list[object]) -> Optional[object]:
+    def call(self, interpreter, arguments: list[object]) -> Optional[object]:
         raise NotImplementedError
