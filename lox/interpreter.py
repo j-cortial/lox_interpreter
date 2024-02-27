@@ -65,7 +65,9 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         self.environment.define(stmt.name.lexeme, None)
         methods: dict[str, LoxFunction] = {}
         for method in stmt.methods:
-            function = LoxFunction(method, self.environment)
+            function = LoxFunction(
+                method, self.environment, method.name.lexeme == "init"
+            )
             methods[method.name.lexeme] = function
         klass = LoxClass(stmt.name.lexeme, methods)
         self.environment.assign(stmt.name, klass)
@@ -74,7 +76,7 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         self.evaluate(stmt.expression)
 
     def visit_function_stmt(self, stmt: stmt.Function) -> None:
-        function: LoxFunction = LoxFunction(stmt, self.environment)
+        function: LoxFunction = LoxFunction(stmt, self.environment, False)
         self.environment.define(stmt.name.lexeme, function)
 
     def visit_if_stmt(self, stmt: If) -> None:
@@ -243,7 +245,9 @@ class Interpreter(stmt.Visitor, expr.Visitor):
             return instance.get(expr.name)
         raise InterpreterRuntimeError(expr.name, "Only instances have properties")
 
-    def check_number_operands(self, operator: Token, left: object, right: object) -> None:
+    def check_number_operands(
+        self, operator: Token, left: object, right: object
+    ) -> None:
         if type(left) is float and type(right) is float:
             return
         raise InterpreterRuntimeError(operator, "Operands must be numbers")

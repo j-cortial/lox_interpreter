@@ -31,7 +31,7 @@ from lox.stmt import (
 )
 from lox.tokens import Token
 
-FunctionType = Enum("FunctionType", ["NONE", "METHOD", "FUNCTION"])
+FunctionType = Enum("FunctionType", ["NONE", "INITIALIZER", "METHOD", "FUNCTION"])
 ClassType = Enum("ClassType", ["NONE", "CLASS"])
 
 
@@ -55,7 +55,11 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self.begin_scope()
         self.scopes[-1]["this"] = True
         for method in stmt.methods:
-            declaration = FunctionType.METHOD
+            declaration = (
+                FunctionType.INITIALIZER
+                if method.name.lexeme == "init"
+                else FunctionType.METHOD
+            )
             self.resolve_function(method, declaration)
         self.end_scope()
         self.current_class = enclosing_class
@@ -81,6 +85,8 @@ class Resolver(expr.Visitor, stmt.Visitor):
         if self.current_function == FunctionType.NONE:
             lox.__main__.error(stmt.keyword.line, "Cannot return from top-level code")
         if stmt.value is not None:
+            if self.current_function == FunctionType.INITIALIZER:
+                lox.__main__.error(stmt.keyword.line, "Cannot return a value from an initializer")
             self.resolve_expr(stmt.value)
 
     def visit_var_stmt(self, stmt: Var) -> None:

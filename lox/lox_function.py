@@ -7,9 +7,12 @@ from typing import Optional
 
 
 class LoxFunction(LoxCallable):
-    def __init__(self, declaration: stmt.Function, closure: Environment) -> None:
+    def __init__(
+        self, declaration: stmt.Function, closure: Environment, is_initializer: bool
+    ) -> None:
         self.closure: Environment = closure
         self.declaration: stmt.Function = declaration
+        self.is_initializer: bool = is_initializer
 
     def __str__(self) -> str:
         return f"<fn {self.declaration.name.lexeme}>"
@@ -20,7 +23,7 @@ class LoxFunction(LoxCallable):
     def bind(self, instance) -> "LoxFunction":
         environment = Environment(self.closure)
         environment.define("this", instance)
-        return LoxFunction(self.declaration, environment)
+        return LoxFunction(self.declaration, environment, self.is_initializer)
 
     def call(self, interpreter, arguments: list[object]) -> Optional[object]:
         environment: Environment = Environment(self.closure)
@@ -28,5 +31,9 @@ class LoxFunction(LoxCallable):
             environment.define(param.lexeme, arg)
         try:
             interpreter.execute_block(self.declaration.body, environment)
-        except ReturnValue as e:
-            return e.value
+        except ReturnValue as return_value:
+            if self.is_initializer:
+                return self.closure.get_at(0, "this")
+            return return_value.value
+        if self.is_initializer:
+            return self.closure.get_at(0, "this")
