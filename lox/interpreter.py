@@ -1,7 +1,18 @@
 import lox.stmt as stmt
 from lox.stmt import Block, Class, Expression, Print, Return, Stmt, Var, If, While
 import lox.expr as expr
-from lox.expr import Assign, Binary, Set, This, Unary, Expr, Grouping, Literal, Variable
+from lox.expr import (
+    Assign,
+    Binary,
+    Set,
+    Super,
+    This,
+    Unary,
+    Expr,
+    Grouping,
+    Literal,
+    Variable,
+)
 from lox.tokens import Token
 from lox.token_types import TokenType
 from lox.runtime_error import InterpreterRuntimeError
@@ -62,14 +73,28 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         self.execute_block(stmt.statements, Environment(self.environment))
 
     def visit_class_stmt(self, stmt: Class) -> None:
+        superclass = None
+        if stmt.superclass is not None:
+            superclass = self.evaluate(stmt.superclass)
+            if not isinstance(superclass, LoxClass):
+                raise InterpreterRuntimeError(
+                    stmt.superclass.name, "Superclass must be a class"
+                )
         self.environment.define(stmt.name.lexeme, None)
+        if superclass is not None:
+            self.environment = Environment(self.environment)
+            self.environment.define("super", superclass)
         methods: dict[str, LoxFunction] = {}
         for method in stmt.methods:
             function = LoxFunction(
                 method, self.environment, method.name.lexeme == "init"
             )
             methods[method.name.lexeme] = function
-        klass = LoxClass(stmt.name.lexeme, methods)
+        klass = LoxClass(stmt.name.lexeme, superclass, methods)
+        if superclass is not None:
+            enclosing = self.environment.enclosing
+            assert enclosing is not None
+            self.environment = enclosing
         self.environment.assign(stmt.name, klass)
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
@@ -134,6 +159,19 @@ class Interpreter(stmt.Visitor, expr.Visitor):
         value: object = self.evaluate(expr.value)
         instance.set(expr.name, value)
         return value
+
+    def visit_super_expr(self, expr: Super) -> LoxFunction:
+        distance = self.locals[expr]
+        superclass = self.environment.get_at(distance, "super")
+        assert isinstance(superclass, LoxClass)
+        instance = self.environment.get_at(distance - 1, "this")
+        assert isinstance(instance, LoxInstance)
+        method = superclass.find_method(expr.method.lexeme)
+        if method is None:
+            raise InterpreterRuntimeError(
+                expr.method, f"Undefined property {expr.method.lexeme}"
+            )
+        return method.bind(instance)
 
     def visit_this_expr(self, expr: This) -> object:
         return self.lookup_variable(expr.keyword, expr)

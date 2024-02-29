@@ -13,6 +13,7 @@ from lox.expr import (
     Literal,
     Logical,
     Set,
+    Super,
     This,
     Unary,
     Variable,
@@ -32,7 +33,7 @@ from lox.stmt import (
 from lox.tokens import Token
 
 FunctionType = Enum("FunctionType", ["NONE", "INITIALIZER", "METHOD", "FUNCTION"])
-ClassType = Enum("ClassType", ["NONE", "CLASS"])
+ClassType = Enum("ClassType", ["NONE", "SUBCLASS", "CLASS"])
 
 
 class Resolver(expr.Visitor, stmt.Visitor):
@@ -52,6 +53,19 @@ class Resolver(expr.Visitor, stmt.Visitor):
         self.current_class = ClassType.CLASS
         self.declare(stmt.name)
         self.define(stmt.name)
+        if (
+            stmt.superclass is not None
+            and stmt.name.lexeme == stmt.superclass.name.lexeme
+        ):
+            lox.__main__.error(
+                stmt.superclass.name.line, "A class cannot inherit from itself"
+            )
+        if stmt.superclass is not None:
+            self.current_class = ClassType.SUBCLASS
+            self.resolve_expr(stmt.superclass)
+        if stmt.superclass is not None:
+            self.begin_scope()
+            self.scopes[-1]["super"] = True
         self.begin_scope()
         self.scopes[-1]["this"] = True
         for method in stmt.methods:
@@ -62,6 +76,8 @@ class Resolver(expr.Visitor, stmt.Visitor):
             )
             self.resolve_function(method, declaration)
         self.end_scope()
+        if stmt.superclass is not None:
+            self.end_scope()
         self.current_class = enclosing_class
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
@@ -86,7 +102,9 @@ class Resolver(expr.Visitor, stmt.Visitor):
             lox.__main__.error(stmt.keyword.line, "Cannot return from top-level code")
         if stmt.value is not None:
             if self.current_function == FunctionType.INITIALIZER:
-                lox.__main__.error(stmt.keyword.line, "Cannot return a value from an initializer")
+                lox.__main__.error(
+                    stmt.keyword.line, "Cannot return a value from an initializer"
+                )
             self.resolve_expr(stmt.value)
 
     def visit_var_stmt(self, stmt: Var) -> None:
@@ -124,6 +142,17 @@ class Resolver(expr.Visitor, stmt.Visitor):
     def visit_set_expr(self, expr: Set) -> None:
         self.resolve_expr(expr.value)
         self.resolve_expr(expr.instance)
+
+    def visit_super_expr(self, expr: Super) -> None:
+        if self.current_class == ClassType.NONE:
+            lox.__main__.error(
+                expr.keyword.line, "Cannot use 'super' outside of a class"
+            )
+        elif self.current_class != ClassType.SUBCLASS:
+            lox.__main__.error(
+                expr.keyword.line, "Cannot use 'super' in a class without superclass"
+            )
+        self.resolve_local(expr, expr.keyword)
 
     def visit_this_expr(self, expr: This) -> None:
         if self.current_class == ClassType.NONE:

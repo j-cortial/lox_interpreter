@@ -19,6 +19,7 @@ def main() -> None:
             "Literal  => value: object",
             "Logical  => left: Expr, operator: Token, right: Expr",
             "Set      => instance: Expr, name: Token, value: Expr",
+            "Super    => keyword: Token, method: Token",
             "This     => keyword: Token",
             "Unary    => operator: Token, right: Expr",
             "Variable => name: Token",
@@ -32,14 +33,14 @@ def main() -> None:
             "Block      => statements: list[Stmt]",
             "Expression => expression: Expr",
             "Function   => name: Token, params: list[Token], body: list[Stmt]",
-            "Class      => name: Token, methods: list[Function]",
+            "Class      => name: Token, superclass: Variable | None, methods: list[Function]",
             "If         => condition: Expr, then_branch: Stmt, else_branch: Stmt | None",
             "Print      => expression: Expr",
             "Return     => keyword: Token, value: Expr | None",
             "Var        => name: Token, initializer: Expr | None",
             "While      => condition: Expr, body: Stmt",
         ],
-        imports=[("expr", "Expr"), ("tokens", "Token")],
+        imports=[("expr", "Expr, Variable"), ("tokens", "Token")],
     )
 
 

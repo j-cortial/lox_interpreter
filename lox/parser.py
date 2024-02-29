@@ -39,12 +39,16 @@ class Parser:
 
     def class_declaration(self) -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER, "Expect class name")
+        superclass = None
+        if self.match(TokenType.LESS):
+            self.consume(TokenType.IDENTIFIER, "Expect superclass name")
+            superclass = expr.Variable(self.previous())
         self.consume(TokenType.LEFT_BRACE, "Expect '{' before class body")
         methods: list[stmt.Function] = []
         while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
             methods.append(self.function("method"))
         self.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body")
-        return stmt.Class(name, methods)
+        return stmt.Class(name, superclass, methods)
 
     def var_declaration(self) -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER, "Expect variable name")
@@ -279,6 +283,11 @@ class Parser:
             return expr.Literal(None)
         if self.match(TokenType.NUMBER, TokenType.STRING):
             return expr.Literal(self.previous().literal)
+        if self.match(TokenType.SUPER):
+            keyword = self.previous()
+            self.consume(TokenType.DOT, "Expect '.' after 'super'")
+            method = self.consume(TokenType.IDENTIFIER, "Expect superclass method name")
+            return expr.Super(keyword, method)
         if self.match(TokenType.THIS):
             return expr.This(self.previous())
         if self.match(TokenType.IDENTIFIER):

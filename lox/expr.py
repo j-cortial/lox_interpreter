@@ -83,6 +83,15 @@ class Set(Expr):
         return visitor.visit_set_expr(self)
 
 
+class Super(Expr):
+    def __init__(self, keyword: Token, method: Token):
+        self.keyword = keyword
+        self.method = method
+
+    def accept(self, visitor: VisitorFwd):
+        return visitor.visit_super_expr(self)
+
+
 class This(Expr):
     def __init__(self, keyword: Token):
         self.keyword = keyword
@@ -131,6 +140,9 @@ class Visitor:
         raise NotImplementedError
 
     def visit_set_expr(self, expr: Set):
+        raise NotImplementedError
+
+    def visit_super_expr(self, expr: Super):
         raise NotImplementedError
 
     def visit_this_expr(self, expr: This):
